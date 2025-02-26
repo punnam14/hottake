@@ -1,18 +1,81 @@
-import { Box, Flex, Input, Button, IconButton, useColorMode, useDisclosure, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalCloseButton } from "@chakra-ui/react"; 
-import { FaMoon, FaSun } from "react-icons/fa"; 
+import { Box, Flex, Text, Input, Button, IconButton, useColorMode, useDisclosure, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalCloseButton } from "@chakra-ui/react";
+import { FaMoon, FaSun } from "react-icons/fa";
 import { IoSunny } from "react-icons/io5";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import Select from "react-select";
+import countriesData from "world-countries";
 
 function App() {
   const { colorMode, toggleColorMode } = useColorMode();
   const { isOpen, onOpen, onClose } = useDisclosure(); // Chakra UI modal control
 
+  const [formData, setFormData] = useState({
+    hot_take: "",
+    name: "",
+    company: "",
+    location: ""
+  });
+
+  const [hotTakes, setHotTakes] = useState([]);
+
+  useEffect(() => {
+    const fetchHotTakes = async () => {
+      try {
+        const response = await axios.get("http://localhost:8000/get-hot-takes/");
+        setHotTakes(response.data.hot_takes);
+      } catch (error) {
+        console.error("Error fetching hot takes:", error);
+      }
+    };
+
+    fetchHotTakes();
+  }, []);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleLocationChange = (selectedOption) => {
+    setFormData({ ...formData, location: selectedOption.label });
+  };
+
+  const countryOptions = countriesData.map((country) => ({
+    value: country.cca2, // Country Code
+    label: country.name.common, // Country Name
+  }));
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await axios.post("http://localhost:8000/submit-hot-take/", formData, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log("Response:", response.data);
+      alert("Hot Take Submitted Successfully!");
+
+      // ✅ Update UI Immediately
+      setHotTakes((prevHotTakes) => [response.data.data, ...prevHotTakes]);
+
+      // Clear form and close modal
+      setFormData({ hot_take: "", name: "", company: "", location: "" });
+      onClose();
+    } catch (error) {
+      console.error("Error submitting hot take:", error);
+      alert("Submission failed! Check your connection.");
+    }
+  };
+
   return (
-    <Box 
-      bg={colorMode === "dark" ? "gray.900" : "gray.100"} 
-      color={colorMode === "dark" ? "white" : "black"} 
+    <Box
+      bg={colorMode === "dark" ? "gray.900" : "gray.100"}
+      color={colorMode === "dark" ? "white" : "black"}
       minH="100vh"
-      px={{ base: "4", md: "10", lg: "20" }} 
+      px={{ base: "4", md: "10", lg: "20" }}
     >
       {/* Dark Mode Toggle Button */}
       <IconButton
@@ -27,23 +90,23 @@ function App() {
       />
 
       {/* Main Layout */}
-      <Flex 
-        minH="100vh" 
+      <Flex
+        minH="100vh"
         alignItems="start"
         justifyContent="center"
         pt={{ md: "150" }}
       >
-        <Flex 
-          w="100%" 
-          maxW="1200px" 
-          flexDirection={{ base: "column", md: "row" }} 
+        <Flex
+          w="100%"
+          maxW="1200px"
+          flexDirection={{ base: "column", md: "row" }}
           gap={6}
         >
           {/* Left Section - Post Button */}
-          <Box 
-            flex="1" 
-            p={6} 
-            bg={colorMode === "dark" ? "gray.800" : "gray.200"} 
+          <Box
+            flex="1"
+            p={6}
+            bg={colorMode === "dark" ? "gray.800" : "gray.200"}
             borderRadius="lg"
             display="flex"
             flexDirection="column"
@@ -57,27 +120,35 @@ function App() {
 
             {/* Placeholder for retrieved posts */}
             <Box mt={6} w="100%" textAlign="center">
-              <Box p={4} bg="gray.600" color="white" borderRadius="md">
-                Retrieved Hot Takes (Mock Data)
-              </Box>
+              <Text fontSize="xl" mb={3}>Recent Hot Takes</Text>
+              {hotTakes.length === 0 ? (
+                <Text>No hot takes yet...</Text>
+              ) : (
+                hotTakes.map((take) => (
+                  <Box key={take.id} p={4} bg="gray.600" color="white" borderRadius="md" mb={2}>
+                    <Text fontWeight="bold">{take.hot_take}</Text>
+                    <Text fontSize="sm">{take.name}, {take.company} ({take.location})</Text>
+                  </Box>
+                ))
+              )}
             </Box>
           </Box>
 
           {/* Right Section - Map Placeholder */}
-          <Box 
-            flex="1" 
-            p={6} 
-            display="flex" 
-            alignItems="center" 
+          <Box
+            flex="1"
+            p={6}
+            display="flex"
+            alignItems="center"
             justifyContent="center"
           >
-            <Box 
-              w="80%" 
-              h="60%" 
-              bg="gray.500" 
-              borderRadius="md" 
-              display="flex" 
-              alignItems="center" 
+            <Box
+              w="80%"
+              h="60%"
+              bg="gray.500"
+              borderRadius="md"
+              display="flex"
+              alignItems="center"
               justifyContent="center"
             >
               Map Placeholder
@@ -92,18 +163,36 @@ function App() {
           <ModalHeader textAlign="center">Post Your Hot Take</ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
-            <form onSubmit={(e) => {
-              e.preventDefault(); 
-              onClose(); 
-            }}>
-              <Input required placeholder="Your Hot Take" mb={3} />
-              <Input required placeholder="Name" mb={3} />
-              <Input required placeholder="Company" mb={3} />
-              <Input required placeholder="Location" mb={3} />
+            <form onSubmit={handleSubmit}>
+              <Input name="hot_take" required placeholder="Your Hot Take" mb={3} value={formData.hot_take} onChange={handleChange} />
+              <Input name="name" required placeholder="Name" mb={3} value={formData.name} onChange={handleChange} />
+              <Input name="company" required placeholder="Company" mb={3} value={formData.company} onChange={handleChange} />
+              <Select
+                options={countryOptions}
+                onChange={handleLocationChange}
+                placeholder="Select a country..."
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    backgroundColor: colorMode === "dark" ? "rgba(255,255,255,0.1)" : "white", 
+                    borderColor: colorMode === "dark" ? "gray" : "#CBD5E0",
+                    color: colorMode === "dark" ? "white" : "black",
+                  }),
+                  menu: (base) => ({
+                    ...base,
+                    backgroundColor: colorMode === "dark" ? "#1A202C" : "white",
+                  }),
+                  singleValue: (base) => ({
+                    ...base,
+                    color: colorMode === "dark" ? "white" : "black",
+                  }),
+                }}
+              />
+              <br />
               <Button type="submit" variant="outline" w="100%" colorScheme="blue">
                 Submit
               </Button>
-            </form> 
+            </form>
           </ModalBody>
         </ModalContent>
       </Modal>
@@ -112,4 +201,3 @@ function App() {
 }
 
 export default App;
-

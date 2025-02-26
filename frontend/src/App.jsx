@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import Select from "react-select";
 import countriesData from "world-countries";
+import GlobeComponent from "./Globe";
 
 function App() {
   const { colorMode, toggleColorMode } = useColorMode();
@@ -142,17 +143,7 @@ function App() {
             alignItems="center"
             justifyContent="center"
           >
-            <Box
-              w="80%"
-              h="60%"
-              bg="gray.500"
-              borderRadius="md"
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-            >
-              Map Placeholder
-            </Box>
+             <GlobeComponent hotTakes={hotTakes} />
           </Box>
         </Flex>
       </Flex>

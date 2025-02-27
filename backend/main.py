@@ -22,6 +22,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+class Feedback(Base):
+    __tablename__ = "feedback"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(255), nullable=False)
+    feedback_text = Column(String(1000), nullable=False)
+
 class HotTake(Base):
     __tablename__ = "hot_takes"
     
@@ -49,6 +56,10 @@ class HotTakeRequest(BaseModel):
     location: str
     latitude: float
     longitude: float
+
+class FeedbackRequest(BaseModel):
+    name: str
+    feedback_text: str
 
 @app.get("/")
 def read_root():
@@ -95,3 +106,14 @@ def get_hot_takes(db: Session = Depends(get_db)):
     ]
 
     return {"hot_takes": hot_takes_with_count}
+
+@app.post("/submit-feedback/")
+def submit_feedback(feedback_request: FeedbackRequest, db: Session = Depends(get_db)):
+    new_feedback = Feedback(
+        name=feedback_request.name,
+        feedback_text=feedback_request.feedback_text,
+    )
+    db.add(new_feedback)
+    db.commit()
+    db.refresh(new_feedback)
+    return {"message": "Feedback Submitted!", "data": new_feedback}

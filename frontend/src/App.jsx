@@ -1,4 +1,4 @@
-import { Box, Flex, Text, Input, Button, IconButton, useColorMode, useDisclosure, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalCloseButton } from "@chakra-ui/react";
+import { Box, Flex, Text, Input, Button, Textarea, IconButton, useColorMode, useDisclosure, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalCloseButton } from "@chakra-ui/react";
 import { FaMoon, FaSun } from "react-icons/fa";
 import { IoSunny } from "react-icons/io5";
 import { useState, useEffect } from "react";
@@ -11,7 +11,17 @@ import { useToast } from "@chakra-ui/react";
 function App() {
   const toast = useToast();
   const { colorMode, toggleColorMode } = useColorMode();
-  const { isOpen, onOpen, onClose } = useDisclosure(); 
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen: isFeedbackOpen, onOpen: onFeedbackOpen, onClose: onFeedbackClose } = useDisclosure();
+
+  const [feedbackData, setFeedbackData] = useState({
+    name: "",
+    feedback_text: "",
+  });
+
+  const handleFeedbackChange = (e) => {
+    setFeedbackData({ ...feedbackData, [e.target.name]: e.target.value });
+  };
 
   const [formData, setFormData] = useState({
     hot_take: "",
@@ -72,8 +82,8 @@ function App() {
   };
 
   const countryOptions = countriesData.map((country) => ({
-    value: country.cca2, 
-    label: country.name.common, 
+    value: country.cca2,
+    label: country.name.common,
   }));
 
   const handleSubmit = async (e) => {
@@ -91,7 +101,7 @@ function App() {
         title: "Hot Take Submitted!",
         description: "Your hot take has been successfully posted.",
         status: "success",
-        duration: 3000, 
+        duration: 3000,
         isClosable: true,
         position: "top-right",
       });
@@ -103,6 +113,41 @@ function App() {
     } catch (error) {
       console.error("Error submitting hot take:", error);
       alert("Submission failed! Check your connection.");
+    }
+  };
+
+  const handleFeedbackSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await axios.post("http://localhost:8000/submit-feedback/", feedbackData, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log("Response:", response.data);
+      toast({
+        title: "Feedback Submitted!",
+        description: "Thank you for your feedback.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+        position: "top-right",
+      });
+
+      setFeedbackData({ name: "", feedback_text: "" });
+      onFeedbackClose();
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+      toast({
+        title: "Submission Failed",
+        description: "There was an issue submitting your feedback.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+        position: "top-right",
+      });
     }
   };
 
@@ -133,8 +178,7 @@ function App() {
         <Flex
           w="100%"
           maxW="1200px"
-          flexDirection={{ base: "column", md: "row" }}
-          >
+          flexDirection={{ base: "column", md: "row" }}>
           <Box
             flex="1"
             p={6}
@@ -146,7 +190,7 @@ function App() {
             mt="3.5rem"
             maxH="600px"
             overflowY="auto"
-            w="100%" 
+            w="100%"
           >
             <Button variant="outline" w="100%" py="5" fontSize="lg" colorScheme="blue" onClick={onOpen}>
               Post
@@ -174,9 +218,14 @@ function App() {
             justifyContent="center"
             mt="2rem"
           >
-             <GlobeComponent hotTakes={hotTakes} />
+            <GlobeComponent hotTakes={hotTakes} />
           </Box>
         </Flex>
+        <Box position="fixed" bottom="2rem" right="2rem" >
+          <Button size="lg" variant="outline" fontSize="lg" colorScheme="blue" onClick={onFeedbackOpen}>
+            Feedback
+          </Button>
+        </Box>
       </Flex>
 
       <Modal isOpen={isOpen} onClose={onClose} isCentered>
@@ -196,8 +245,8 @@ function App() {
                 styles={{
                   control: (base) => ({
                     ...base,
-                    backgroundColor: colorMode === "dark" ? "rgba(255,255,255,0.1)" : "white", 
-                    borderColor: colorMode === "dark" ? "gray" : "#CBD5E0",
+                    backgroundColor: colorMode === "dark" ? "gray.900" : "white",
+                    borderColor: colorMode === "dark" ? "gray.900" : "#CBD5E0",
                     color: colorMode === "dark" ? "white" : "black",
                   }),
                   menu: (base) => ({
@@ -208,10 +257,51 @@ function App() {
                     ...base,
                     color: colorMode === "dark" ? "white" : "black",
                   }),
+                  option: (base, { isFocused }) => ({
+                    ...base,
+                    backgroundColor: isFocused
+                      ? colorMode === "dark"
+                        ? "rgba(255, 255, 255, 0.2)"
+                        : "#E2E8F0"
+                      : "transparent",
+                    color: colorMode === "dark" ? "white" : "black",
+                  }),
                 }}
               />
               <br />
               <Button type="submit" variant="outline" w="100%" colorScheme="blue">
+                Submit
+              </Button>
+            </form>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+      <Modal isOpen={isFeedbackOpen} onClose={onFeedbackClose} isCentered>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader textAlign="center">Submit Feedback</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            <form onSubmit={handleFeedbackSubmit}>
+              <Input
+                name="name"
+                required
+                placeholder="Your Name"
+                mb={3}
+                value={feedbackData.name}
+                onChange={handleFeedbackChange}
+              />
+              <Textarea
+                name="feedback_text"
+                required
+                placeholder="Your Feedback"
+                mb={3}
+                value={feedbackData.feedback_text}
+                onChange={handleFeedbackChange}
+                rows={3}
+                resize="vertical"
+              />
+              <Button variant="outline" fontSize="lg" colorScheme="blue" type="submit" w="100%">
                 Submit
               </Button>
             </form>

@@ -158,6 +158,9 @@ function App() {
       minH="100vh"
       px={{ base: "4", md: "10", lg: "20" }}
     >
+      <Box position="absolute" top="0.5rem" left="1rem">
+        <img src="/logo.png" alt="Hot Takes Logo" width="60" height="60" />
+      </Box>
       <IconButton
         position="absolute"
         top="1rem"

@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import create_engine, Column, Integer, String, Float
+from sqlalchemy import create_engine, Column, Integer, String, Float, func
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from pydantic import BaseModel
@@ -78,8 +78,39 @@ def submit_hot_take(hot_take_request: HotTakeRequest, db: Session = Depends(get_
     db.refresh(new_take)
     return {"message": "Hot Take Submitted!", "data": new_take}
 
+# @app.get("/get-hot-takes/")
+# def get_hot_takes(db: Session = Depends(get_db)):
+#     hot_takes = db.query(HotTake).order_by(HotTake.id.desc()).limit(10).all() 
+#     return {"hot_takes": hot_takes}
+
 @app.get("/get-hot-takes/")
 def get_hot_takes(db: Session = Depends(get_db)):
-    hot_takes = db.query(HotTake).order_by(HotTake.id.desc()).limit(10).all() 
-    return {"hot_takes": hot_takes}
+    # Count the number of hot takes per location
+    location_counts = (
+        db.query(HotTake.location, func.count(HotTake.id).label("count"))
+        .group_by(HotTake.location)
+        .all()
+    )
 
+    # Convert to dictionary { "United States": 3, "India": 5, ... }
+    location_counts_dict = {loc: count for loc, count in location_counts}
+
+    # Get full hot take data
+    hot_takes = db.query(HotTake).order_by(HotTake.id.desc()).limit(10).all()
+
+    # Attach count to each hot take
+    hot_takes_with_count = [
+        {
+            "id": take.id,
+            "hot_take": take.hot_take,
+            "name": take.name,
+            "company": take.company,
+            "location": take.location,
+            "latitude": take.latitude,
+            "longitude": take.longitude,
+            "count": location_counts_dict.get(take.location, 1)  # Default to 1 if no count
+        }
+        for take in hot_takes
+    ]
+
+    return {"hot_takes": hot_takes_with_count}

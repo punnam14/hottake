@@ -6,8 +6,10 @@ import axios from "axios";
 import Select from "react-select";
 import countriesData from "world-countries";
 import GlobeComponent from "./Globe";
+import { useToast } from "@chakra-ui/react";
 
 function App() {
+  const toast = useToast();
   const { colorMode, toggleColorMode } = useColorMode();
   const { isOpen, onOpen, onClose } = useDisclosure(); // Chakra UI modal control
 
@@ -97,7 +99,14 @@ function App() {
       });
 
       console.log("Response:", response.data);
-      alert("Hot Take Submitted Successfully!");
+      toast({
+        title: "Hot Take Submitted!",
+        description: "Your hot take has been successfully posted.",
+        status: "success",
+        duration: 3000, // Time before it disappears (3s)
+        isClosable: true,
+        position: "top-right",
+      });
 
       // ✅ Update UI Immediately
       setHotTakes((prevHotTakes) => [response.data.data, ...prevHotTakes]);

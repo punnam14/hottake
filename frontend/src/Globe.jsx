@@ -12,6 +12,7 @@ const GlobeComponent = ({ hotTakes }) => {
     label: `${take.location}: ${take.hot_take}`, 
     size: 1.5, 
     color: "orange",
+    dotSize: Math.log(take.count + 1) * 0.5,
   }));
 
   useEffect(() => {
@@ -40,7 +41,7 @@ const GlobeComponent = ({ hotTakes }) => {
       labelText="text"
       labelColor={() => "orange"}
       labelSize="size"
-      labelDotRadius={0.5}
+      labelDotRadius={(d) => d.dotSize}
       labelIncludeDot={true}
       animateIn={true}
       onGlobeReady={() => setGlobeReady(true)}

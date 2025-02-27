@@ -21,6 +21,9 @@ const GlobeComponent = ({ hotTakes }) => {
         { lat: 20, lng: 0, altitude: 1.5 }, 
         2000 
       );
+      const controls = globeRef.current.controls();
+      controls.autoRotate = true;
+      controls.autoRotateSpeed = 0.6;
     }
   }, [globeReady]); 
 
@@ -29,7 +32,7 @@ const GlobeComponent = ({ hotTakes }) => {
       ref={globeRef}
       width={600}
       height={600}
-      globeImageUrl="//unpkg.com/three-globe/example/img/earth-dark.jpg"
+      globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
       bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
       backgroundImageUrl="//unpkg.com/three-globe/example/img/night-sky.png"
       showAtmosphere={true}

@@ -11,7 +11,7 @@ import { useToast } from "@chakra-ui/react";
 function App() {
   const toast = useToast();
   const { colorMode, toggleColorMode } = useColorMode();
-  const { isOpen, onOpen, onClose } = useDisclosure(); // Chakra UI modal control
+  const { isOpen, onOpen, onClose } = useDisclosure(); 
 
   const [formData, setFormData] = useState({
     hot_take: "",
@@ -41,14 +41,9 @@ function App() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // const handleLocationChange = (selectedOption) => {
-  //   setFormData({ ...formData, location: selectedOption.label });
-  // };
-
   const handleLocationChange = async (selectedOption) => {
     const locationName = selectedOption.label;
 
-    // Set location in state immediately
     setFormData({ ...formData, location: locationName });
 
     try {
@@ -77,8 +72,8 @@ function App() {
   };
 
   const countryOptions = countriesData.map((country) => ({
-    value: country.cca2, // Country Code
-    label: country.name.common, // Country Name
+    value: country.cca2, 
+    label: country.name.common, 
   }));
 
   const handleSubmit = async (e) => {
@@ -96,14 +91,13 @@ function App() {
         title: "Hot Take Submitted!",
         description: "Your hot take has been successfully posted.",
         status: "success",
-        duration: 3000, // Time before it disappears (3s)
+        duration: 3000, 
         isClosable: true,
         position: "top-right",
       });
 
       setHotTakes((prevHotTakes) => [response.data.data, ...prevHotTakes]);
 
-      // Clear form and close modal
       setFormData({ hot_take: "", name: "", company: "", location: "", latitude: null, longitude: null });
       onClose();
     } catch (error) {
@@ -119,7 +113,6 @@ function App() {
       minH="100vh"
       px={{ base: "4", md: "10", lg: "20" }}
     >
-      {/* Dark Mode Toggle Button */}
       <IconButton
         position="absolute"
         top="1rem"
@@ -131,7 +124,6 @@ function App() {
         fontSize="1.5rem"
       />
 
-      {/* Main Layout */}
       <Flex
         minH="100vh"
         alignItems="flex-start"
@@ -142,9 +134,7 @@ function App() {
           w="100%"
           maxW="1200px"
           flexDirection={{ base: "column", md: "row" }}
-          // gap={6}
           >
-          {/* Left Section - Post Button */}
           <Box
             flex="1"
             p={6}
@@ -158,12 +148,9 @@ function App() {
             overflowY="auto"
             w="100%" 
           >
-            {/* Open Modal when clicked */}
             <Button variant="outline" w="100%" py="5" fontSize="lg" colorScheme="blue" onClick={onOpen}>
               Post
             </Button>
-
-            {/* Placeholder for retrieved posts */}
             <Box mt={6} w="100%" textAlign="center">
               <Text fontSize="xl" mb={3}>Recent Hot Takes</Text>
               {hotTakes.length === 0 ? (
@@ -179,7 +166,6 @@ function App() {
             </Box>
           </Box>
 
-          {/* Right Section - Map Placeholder */}
           <Box
             flex="1"
             p={6}

@@ -6,27 +6,22 @@ from sqlalchemy.orm import sessionmaker, Session
 from pydantic import BaseModel
 import os
 
-# AWS RDS Database Credentials
 DATABASE_URL = "mysql+pymysql://admin:Hottakes2025!@hottakes-db.cv1qdgnducne.us-east-1.rds.amazonaws.com/hottakes_db"
 
-# SQLAlchemy Setup
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# FastAPI App
 app = FastAPI()
 
-# Allow frontend to communicate with backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Change this to frontend domain in production
+    allow_origins=["*"],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Database Model
 class HotTake(Base):
     __tablename__ = "hot_takes"
     
@@ -38,10 +33,8 @@ class HotTake(Base):
     latitude = Column(Float, nullable=True)  
     longitude = Column(Float, nullable=True)  
 
-# Create tables
 Base.metadata.create_all(bind=engine)
 
-# Dependency to get DB session
 def get_db():
     db = SessionLocal()
     try:
@@ -49,7 +42,6 @@ def get_db():
     finally:
         db.close()
 
-# Request Model for API
 class HotTakeRequest(BaseModel):
     hot_take: str
     name: str
@@ -58,7 +50,6 @@ class HotTakeRequest(BaseModel):
     latitude: float
     longitude: float
 
-# API Endpoints
 @app.get("/")
 def read_root():
     return {"message": "Hello from FastAPI Backend!"}
@@ -78,27 +69,17 @@ def submit_hot_take(hot_take_request: HotTakeRequest, db: Session = Depends(get_
     db.refresh(new_take)
     return {"message": "Hot Take Submitted!", "data": new_take}
 
-# @app.get("/get-hot-takes/")
-# def get_hot_takes(db: Session = Depends(get_db)):
-#     hot_takes = db.query(HotTake).order_by(HotTake.id.desc()).limit(10).all() 
-#     return {"hot_takes": hot_takes}
-
 @app.get("/get-hot-takes/")
 def get_hot_takes(db: Session = Depends(get_db)):
-    # Count the number of hot takes per location
     location_counts = (
         db.query(HotTake.location, func.count(HotTake.id).label("count"))
         .group_by(HotTake.location)
         .all()
     )
-
-    # Convert to dictionary { "United States": 3, "India": 5, ... }
     location_counts_dict = {loc: count for loc, count in location_counts}
 
-    # Get full hot take data
     hot_takes = db.query(HotTake).order_by(HotTake.id.desc()).limit(10).all()
 
-    # Attach count to each hot take
     hot_takes_with_count = [
         {
             "id": take.id,
@@ -108,7 +89,7 @@ def get_hot_takes(db: Session = Depends(get_db)):
             "location": take.location,
             "latitude": take.latitude,
             "longitude": take.longitude,
-            "count": location_counts_dict.get(take.location, 1)  # Default to 1 if no count
+            "count": location_counts_dict.get(take.location, 1)  
         }
         for take in hot_takes
     ]

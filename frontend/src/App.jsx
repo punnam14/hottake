@@ -13,7 +13,13 @@ function App() {
   const { colorMode, toggleColorMode } = useColorMode();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { isOpen: isFeedbackOpen, onOpen: onFeedbackOpen, onClose: onFeedbackClose } = useDisclosure();
-  const API_KEY = import.meta.env.VITE_OPENCAGE_API_KEY;
+  const [loading, setLoading] = useState(false);
+  const [hotTakes, setHotTakes] = useState([]);
+
+  const countryOptions = countriesData.map((country) => ({
+    value: country.cca2,
+    label: country.name.common,
+  }));
 
   const [feedbackData, setFeedbackData] = useState({
     name: "",
@@ -24,79 +30,24 @@ function App() {
     setFeedbackData({ ...feedbackData, [e.target.name]: e.target.value });
   };
 
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
   const [formData, setFormData] = useState({
     hot_take: "",
     name: "",
     company: "",
     location: "",
-    latitude: null,
-    longitude: null,
   });
-
-  const [hotTakes, setHotTakes] = useState([]);
-
-  useEffect(() => {
-    const fetchHotTakes = async () => {
-      try {
-        const response = await axios.get("http://localhost:8000/get-hot-takes/");
-        setHotTakes(response.data.hot_takes);
-      } catch (error) {
-        console.error("Error fetching hot takes:", error);
-      }
-    };
-
-    fetchHotTakes();
-  }, []);
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleLocationChange = async (selectedOption) => {
-    const locationName = selectedOption.label;
-
-    setFormData({ ...formData, location: locationName });
-
-    try {
-      const response = await axios.get(
-        `https://api.opencagedata.com/geocode/v1/json?q=${locationName}&key=${API_KEY}`
-      );
-
-      if (response.data.results.length > 0) {
-        const { lat, lng } = response.data.results[0].geometry;
-
-        console.log("Latitude:", lat);
-        console.log("Longitude:", lng);
-
-        setFormData((prevData) => ({
-          ...prevData,
-          latitude: lat,
-          longitude: lng,
-        }));
-      } else {
-        console.error("No coordinates found for", locationName);
-      }
-    } catch (error) {
-      console.error("Error fetching coordinates:", error);
-    }
-  };
-
-  const countryOptions = countriesData.map((country) => ({
-    value: country.cca2,
-    label: country.name.common,
-  }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setLoading(true);
     try {
       const response = await axios.post("http://localhost:8000/submit-hot-take/", formData, {
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
       });
-
-      console.log("Response:", response.data);
       toast({
         title: "Hot Take Submitted!",
         description: "Your hot take has been successfully posted.",
@@ -105,28 +56,32 @@ function App() {
         isClosable: true,
         position: "top-right",
       });
-
       setHotTakes((prevHotTakes) => [response.data.data, ...prevHotTakes]);
-
-      setFormData({ hot_take: "", name: "", company: "", location: "", latitude: null, longitude: null });
+      setFormData({ hot_take: "", name: "", company: "", location: "" });
       onClose();
     } catch (error) {
-      console.error("Error submitting hot take:", error);
-      alert("Submission failed! Check your connection.");
+      console.error("Submission Error:", error);
+      toast({
+        title: "Submission Failed",
+        description: "There was an issue submitting your hot take.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+        position: "top-right",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleFeedbackSubmit = async (e) => {
     e.preventDefault();
-
     try {
       const response = await axios.post("http://localhost:8000/submit-feedback/", feedbackData, {
         headers: {
           "Content-Type": "application/json",
         },
       });
-
-      console.log("Response:", response.data);
       toast({
         title: "Feedback Submitted!",
         description: "Thank you for your feedback.",
@@ -150,6 +105,19 @@ function App() {
       });
     }
   };
+
+  useEffect(() => {
+    const fetchHotTakes = async () => {
+      try {
+        const response = await axios.get("http://localhost:8000/get-hot-takes/");
+        setHotTakes(response.data.hot_takes);
+      } catch (error) {
+        console.error("Error fetching hot takes:", error);
+      }
+    };
+
+    fetchHotTakes();
+  }, []);
 
   return (
     <Box
@@ -241,9 +209,7 @@ function App() {
               <Input name="hot_take" required placeholder="Your Hot Take" mb={3} value={formData.hot_take} onChange={handleChange} />
               <Input name="name" required placeholder="Name" mb={3} value={formData.name} onChange={handleChange} />
               <Input name="company" required placeholder="Company" mb={3} value={formData.company} onChange={handleChange} />
-              <Select
-                options={countryOptions}
-                onChange={handleLocationChange}
+              <Select options={countryOptions} onChange={(selectedOption) => setFormData({ ...formData, location: selectedOption.label })}
                 placeholder="Select a country..."
                 styles={{
                   control: (base) => ({
@@ -272,7 +238,7 @@ function App() {
                 }}
               />
               <br />
-              <Button type="submit" variant="outline" w="100%" colorScheme="blue">
+              <Button type="submit" variant="outline" w="100%" colorScheme="blue" isLoading={loading} loadingText="Submitting..." isDisabled={loading}>
                 Submit
               </Button>
             </form>

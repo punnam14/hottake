@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy import create_engine, Column, Integer, String, Float
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from pydantic import BaseModel
@@ -35,6 +35,8 @@ class HotTake(Base):
     name = Column(String(100), nullable=False)
     company = Column(String(100), nullable=False)
     location = Column(String(100), nullable=False)
+    latitude = Column(Float, nullable=True)  
+    longitude = Column(Float, nullable=True)  
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -53,6 +55,8 @@ class HotTakeRequest(BaseModel):
     name: str
     company: str
     location: str
+    latitude: float
+    longitude: float
 
 # API Endpoints
 @app.get("/")
@@ -66,6 +70,8 @@ def submit_hot_take(hot_take_request: HotTakeRequest, db: Session = Depends(get_
         name=hot_take_request.name,
         company=hot_take_request.company,
         location=hot_take_request.location,
+        latitude=hot_take_request.latitude,
+        longitude=hot_take_request.longitude,
     )
     db.add(new_take)
     db.commit()

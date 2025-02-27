@@ -11,11 +11,20 @@ function App() {
   const { colorMode, toggleColorMode } = useColorMode();
   const { isOpen, onOpen, onClose } = useDisclosure(); // Chakra UI modal control
 
+  // const [formData, setFormData] = useState({
+  //   hot_take: "",
+  //   name: "",
+  //   company: "",
+  //   location: ""
+  // });
+
   const [formData, setFormData] = useState({
     hot_take: "",
     name: "",
     company: "",
-    location: ""
+    location: "",
+    latitude: null,
+    longitude: null,
   });
 
   const [hotTakes, setHotTakes] = useState([]);
@@ -37,8 +46,39 @@ function App() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleLocationChange = (selectedOption) => {
-    setFormData({ ...formData, location: selectedOption.label });
+  // const handleLocationChange = (selectedOption) => {
+  //   setFormData({ ...formData, location: selectedOption.label });
+  // };
+
+  const handleLocationChange = async (selectedOption) => {
+    const locationName = selectedOption.label;
+
+    // Set location in state immediately
+    setFormData({ ...formData, location: locationName });
+
+    try {
+      const API_KEY = "1e7ed4a5c5414164ba4fbfef4f8e9751";
+      const response = await axios.get(
+        `https://api.opencagedata.com/geocode/v1/json?q=${locationName}&key=${API_KEY}`
+      );
+
+      if (response.data.results.length > 0) {
+        const { lat, lng } = response.data.results[0].geometry;
+
+        console.log("Latitude:", lat);
+        console.log("Longitude:", lng);
+
+        setFormData((prevData) => ({
+          ...prevData,
+          latitude: lat,
+          longitude: lng,
+        }));
+      } else {
+        console.error("No coordinates found for", locationName);
+      }
+    } catch (error) {
+      console.error("Error fetching coordinates:", error);
+    }
   };
 
   const countryOptions = countriesData.map((country) => ({
@@ -63,7 +103,7 @@ function App() {
       setHotTakes((prevHotTakes) => [response.data.data, ...prevHotTakes]);
 
       // Clear form and close modal
-      setFormData({ hot_take: "", name: "", company: "", location: "" });
+      setFormData({ hot_take: "", name: "", company: "", location: "", latitude: null, longitude: null });
       onClose();
     } catch (error) {
       console.error("Error submitting hot take:", error);

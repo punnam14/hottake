@@ -13,6 +13,7 @@ function App() {
   const { colorMode, toggleColorMode } = useColorMode();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { isOpen: isFeedbackOpen, onOpen: onFeedbackOpen, onClose: onFeedbackClose } = useDisclosure();
+  const API_KEY = import.meta.env.VITE_OPENCAGE_API_KEY;
 
   const [feedbackData, setFeedbackData] = useState({
     name: "",
@@ -57,7 +58,6 @@ function App() {
     setFormData({ ...formData, location: locationName });
 
     try {
-      const API_KEY = "1e7ed4a5c5414164ba4fbfef4f8e9751";
       const response = await axios.get(
         `https://api.opencagedata.com/geocode/v1/json?q=${locationName}&key=${API_KEY}`
       );

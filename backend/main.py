@@ -5,8 +5,14 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from pydantic import BaseModel
 import os
+from dotenv import load_dotenv
 
-DATABASE_URL = "mysql+pymysql://admin:Hottakes2025!@hottakes-db.cv1qdgnducne.us-east-1.rds.amazonaws.com/hottakes_db"
+load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL is not set in .env file")
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

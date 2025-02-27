@@ -13,13 +13,6 @@ function App() {
   const { colorMode, toggleColorMode } = useColorMode();
   const { isOpen, onOpen, onClose } = useDisclosure(); // Chakra UI modal control
 
-  // const [formData, setFormData] = useState({
-  //   hot_take: "",
-  //   name: "",
-  //   company: "",
-  //   location: ""
-  // });
-
   const [formData, setFormData] = useState({
     hot_take: "",
     name: "",
@@ -108,7 +101,6 @@ function App() {
         position: "top-right",
       });
 
-      // ✅ Update UI Immediately
       setHotTakes((prevHotTakes) => [response.data.data, ...prevHotTakes]);
 
       // Clear form and close modal
@@ -142,16 +134,16 @@ function App() {
       {/* Main Layout */}
       <Flex
         minH="100vh"
-        alignItems="start"
+        alignItems="flex-start"
         justifyContent="center"
-        pt={{ md: "150" }}
+        pt={{ md: "100" }}
       >
         <Flex
           w="100%"
           maxW="1200px"
           flexDirection={{ base: "column", md: "row" }}
-          gap={6}
-        >
+          // gap={6}
+          >
           {/* Left Section - Post Button */}
           <Box
             flex="1"
@@ -162,9 +154,12 @@ function App() {
             flexDirection="column"
             alignItems="center"
             mt="3.5rem"
+            maxH="600px"
+            overflowY="auto"
+            w="100%" 
           >
             {/* Open Modal when clicked */}
-            <Button variant="outline" w="100%" colorScheme="blue" onClick={onOpen}>
+            <Button variant="outline" w="100%" py="5" fontSize="lg" colorScheme="blue" onClick={onOpen}>
               Post
             </Button>
 
@@ -191,6 +186,7 @@ function App() {
             display="flex"
             alignItems="center"
             justifyContent="center"
+            mt="2rem"
           >
              <GlobeComponent hotTakes={hotTakes} />
           </Box>

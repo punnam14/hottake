@@ -7,3 +7,4 @@ pydantic
 cryptography
 requests
 httpx
+sqlite

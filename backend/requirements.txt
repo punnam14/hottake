@@ -7,5 +7,4 @@ pydantic
 cryptography
 requests
 httpx
-sqlite
 pytest

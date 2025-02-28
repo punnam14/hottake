@@ -27,8 +27,11 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: "mysql+pymysql://admin:password@mysql-db:3306/hottakes_db"
+      OPENCAGE_API_KEY: "${OPENCAGE_API_KEY}"
     ports:
       - "8000:8000"
+    env_file:
+      - ./backend/.env
 
   frontend:
     build: ./frontend
@@ -38,8 +41,6 @@ services:
       - backend
     ports:
       - "5173:5173"
-    env_file:
-      - ./frontend/.env
     environment:
       VITE_BACKEND_URL: "http://localhost:8000"
 

@@ -6,3 +6,4 @@ python-dotenv
 pydantic
 cryptography
 requests
+httpx

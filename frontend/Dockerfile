@@ -13,7 +13,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-RUN npm run build   # This should produce a static bundle in (typically) a `dist` folder
+RUN npm run build  
 
 # Stage 2: Serve static assets using Nginx
 FROM nginx:stable-alpine

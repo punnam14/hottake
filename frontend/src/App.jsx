@@ -45,7 +45,7 @@ function App() {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await axios.post("http://localhost:8000/submit-hot-take/", formData, {
+      const response = await axios.post("https://hottake.pro/api/submit-hot-take/", formData, {
         headers: { "Content-Type": "application/json" },
       });
       toast({
@@ -77,7 +77,7 @@ function App() {
   const handleFeedbackSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post("http://localhost:8000/submit-feedback/", feedbackData, {
+      const response = await axios.post("https://hottake.pro/api/submit-feedback/", feedbackData, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -109,7 +109,7 @@ function App() {
   useEffect(() => {
     const fetchHotTakes = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/get-hot-takes/");
+        const response = await axios.get("https://hottake.pro/api/get-hot-takes/");
         setHotTakes(response.data.hot_takes);
       } catch (error) {
         console.error("Error fetching hot takes:", error);

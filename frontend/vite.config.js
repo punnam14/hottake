@@ -12,6 +12,11 @@ export default defineConfig({
     watch: {
       usePolling: true,
     },
-    allowedHosts: ["hottake.pro", "localhost"],  // Allow your domain
+    allowedHosts: ["hottake.pro", "localhost"],  
+    hmr: {
+      protocol: 'wss',  // Ensure WebSockets use secure protocol
+      host: 'hottake.pro',  // Match your deployed domain
+      port: 443,  // Match HTTPS port
+    }
   },
 })

@@ -14,7 +14,7 @@ export default defineConfig({
     },
     allowedHosts: ["hottake.pro", "localhost"],  
     hmr: {
-      protocol: 'wss',  // Ensure WebSockets use secure protocol
+      protocol: 'ws',  // Ensure WebSockets use secure protocol
       host: 'hottake.pro',  // Match your deployed domain
       port: 443,  // Match HTTPS port
     }
